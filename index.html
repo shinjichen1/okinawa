@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* style.css START */
-        /* 基本設定與字體 */
         :root {
             --primary-color: #FF6B6B; /* 主色調: 鮮明的紅/粉紅 */
             --secondary-color: #4ECDC4; /* 次要色調: 青綠色 */
@@ -60,7 +59,7 @@
             border-radius: var(--radius);
             box-shadow: var(--box-shadow);
             overflow: hidden;
-            display: none; /* 預設隱藏，由 JS 控制顯示 */
+            display: none;
         }
         .day-header {
             background-color: var(--secondary-color);
@@ -73,66 +72,28 @@
         .itinerary-list {
             padding: 15px 0 0;
         }
-        /* 讓 event 變成可點擊的指示 */
+
+        /* 【修正 1 關鍵】調整行程間距和高度，讓時間軸點和文字不重疊 */
         .event {
-            padding: 12px 20px 12px 80px;
+            padding: 15px 20px 15px 80px; /* 增加上下 padding，確保文本不重疊 */
             position: relative;
             border-left: 2px solid var(--bg-light);
             margin-left: 30px;
-            min-height: 50px;
+            /* 讓單行文字也能有足夠的空間 */
+            min-height: 60px; 
             font-weight: 500;
-            cursor: pointer; /* 顯示為可點擊 */
             transition: background-color 0.1s;
         }
-        .event:hover {
-            background-color: #F9F9F9;
-        }
-        
-        /* --- 新增景點細節區塊樣式 --- */
-        .event-details {
-            padding: 10px 20px 10px 0;
-            font-size: 0.9em;
-            color: #666;
-            background-color: #FAFCFE;
-            border-top: 1px dashed #EEE;
-            /* 展開/收合的核心樣式 */
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
-        }
 
-        /* 展開狀態的樣式 */
-        .event.expanded .event-details {
-            max-height: 500px; /* 設一個足夠大的高度 */
-            padding-top: 10px;
-            padding-bottom: 10px;
-        }
-        /* 移除展開狀態下，景點資訊上方的 padding */
-        .event.expanded {
-            padding-bottom: 0;
-        }
-        /* --- 箭頭圖標 (表示可點擊展開) --- */
-        .event-title-wrapper {
+        /* 【修正 2 關鍵】用於景點標題的包裝，確保箭頭在最右側 */
+        .event-title-line {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            /* 佔用 event 除去時間標籤外的區域 */
-            position: absolute; 
-            top: 0; 
-            bottom: 0; 
-            left: 80px; 
-            right: 20px;
-        }
-        .toggle-icon {
-            font-size: 0.8em;
-            color: var(--secondary-color);
-            transition: transform 0.2s;
-            margin-left: 10px;
-            flex-shrink: 0;
-        }
-        /* 景點展開時，箭頭旋轉 */
-        .event.expanded .toggle-icon {
-            transform: rotate(180deg);
+            /* 讓文字和箭頭保持在同一行 */
+            width: 100%; 
+            padding-right: 10px; 
+            cursor: pointer; 
         }
 
         /* 時間軸點 */
@@ -140,8 +101,9 @@
             content: '';
             position: absolute;
             left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
+            /* 讓時間點對齊行距中間 */
+            top: 25px; 
+            transform: translateY(0); 
             width: 10px;
             height: 10px;
             border-radius: 50%;
@@ -154,14 +116,48 @@
             content: attr(data-time);
             position: absolute;
             left: 0;
-            top: 50%; 
-            transform: translateY(-50%); 
+            /* 讓時間對齊行距中間 */
+            top: 25px; 
+            transform: translateY(0); 
             font-size: 0.8em;
             font-weight: bold;
             color: var(--primary-color);
             width: 65px;
             text-align: right;
             padding-right: 5px;
+        }
+        /* --- 新增景點細節區塊樣式 --- */
+        .event-details {
+            padding: 0;
+            padding-top: 10px; /* 修正：展開時與上方文本的間距 */
+            font-size: 0.9em;
+            color: #666;
+            background-color: #FAFCFE;
+            border-top: 1px dashed #EEE;
+            /* 展開/收合的核心樣式 */
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+            margin-right: -20px; /* 抵銷 .event 的右邊距 */
+            padding-right: 20px;
+        }
+        /* 展開狀態的樣式 */
+        .event.expanded .event-details {
+            max-height: 500px; /* 設一個足夠大的高度 */
+            padding-bottom: 10px;
+        }
+
+        /* 箭頭圖標 (表示可點擊展開) */
+        .toggle-icon {
+            font-size: 0.8em;
+            color: var(--secondary-color);
+            transition: transform 0.2s;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+        /* 景點展開時，箭頭旋轉 */
+        .event.expanded .toggle-icon {
+            transform: rotate(180deg);
         }
         /* 旅館資訊 */
         .hotel-info {
@@ -249,29 +245,30 @@
             
             <div class="event travel" data-time="08:10-10:45">CI120 桃園→那霸</div>
             <div class="event action" data-time="12:30">領車 (OTS 那霸空港)</div>
-            
+            <div class="event destination color-red" data-time="16:00">那霸→美國村</div>
+            <div class="event action color-red" data-time="22:00">美國村→名護 (Check-in)</div>
+
+
             <div class="event activity" data-time="14:00">
-                <div class="event-title-wrapper">
+                <div class="event-title-line">
                     <span>牧志公設市場</span>
                     <i class="fa-solid fa-angle-down toggle-icon"></i>
                 </div>
                 <div class="event-details">
-                    <p>這是那霸市中心的「沖繩廚房」，可以購買新鮮海產後到二樓代客料理，體驗最道地的沖繩市場文化。記得找找當地的限定零食！</p>
+                    <p style="padding-left: 0;">這是那霸市中心的「沖繩廚房」，可以購買新鮮海產後到二樓代客料理，體驗最道地的沖繩市場文化。記得找找當地的限定零食！</p>
                 </div>
             </div>
             
-            <div class="event destination color-red" data-time="16:00">那霸→美國村</div>
-
             <div class="event activity" data-time="17:00">
-                <div class="event-title-wrapper">
+                <div class="event-title-line">
                     <span>AEON Rycom + 美國村 (聖誕氣氛)</span>
                     <i class="fa-solid fa-angle-down toggle-icon"></i>
                 </div>
                 <div class="event-details">
-                    <p>AEON Rycom 是沖繩最大的購物中心之一，美國村則充滿異國情調。傍晚點燈後，巨大的摩天輪和聖誕裝飾非常適合拍照，也是晚餐的好選擇。</p>
+                    <p style="padding-left: 0;">AEON Rycom 是沖繩最大的購物中心之一，美國村則充滿異國情調。傍晚點燈後，巨大的摩天輪和聖誕裝飾非常適合拍照，也是晚餐的好選擇。</p>
                 </div>
             </div>
-            <div class="event action color-red" data-time="22:00">美國村→名護 (Check-in)</div>
+
             <div class="hotel-info"><i class="fa-solid fa-house-chimney"></i> 住宿: Peace Nago</div>
         </div>
     </section>
@@ -280,12 +277,12 @@
         <h2 class="day-header"><i class="fa-solid fa-water"></i> DAY 2 | 11/29 (五)</h2>
         <div class="itinerary-list">
             <div class="event activity" data-time="10:00">
-                <div class="event-title-wrapper">
+                <div class="event-title-line">
                     <span>潛水員牛排 (Captain's Inn)</span>
                     <i class="fa-solid fa-angle-down toggle-icon"></i>
                 </div>
                 <div class="event-details">
-                    <p>北部的老字號鐵板燒牛排店，CP值高，是沖繩旅遊必吃的平價美食之一，推薦搭配蒜片一起享用！</p>
+                    <p style="padding-left: 0;">北部的老字號鐵板燒牛排店，CP值高，是沖繩旅遊必吃的平價美食之一，推薦搭配蒜片一起享用！</p>
                 </div>
             </div>
             <div class="event activity" data-time="13:00">嵐山展望台</div>
@@ -304,12 +301,12 @@
             <div class="event travel" data-time="11:30">海中道路</div>
             <div class="event activity" data-time="13:00">吃的選三選一</div>
             <div class="event food" data-time="15:00">
-                <div class="event-title-wrapper">
+                <div class="event-title-line">
                     <span>港川外人住宅</span>
                     <i class="fa-solid fa-angle-down toggle-icon"></i>
                 </div>
                 <div class="event-details">
-                    <p>由美軍舊宿舍改建的文創區，充滿特色小店和咖啡館，每棟建築都有獨特的色彩和氛圍，適合下午茶和散步。</p>
+                    <p style="padding-left: 0;">由美軍舊宿舍改建的文創區，充滿特色小店和咖啡館，每棟建築都有獨特的色彩和氛圍，適合下午茶和散步。</p>
                 </div>
             </div>
             <div class="event activity color-orange" data-time="18:00">演唱會 @ 沖繩會議中心</div>
@@ -323,12 +320,12 @@
         <h2 class="day-header"><i class="fa-solid fa-city"></i> DAY 4 | 12/1 (日)</h2>
         <div class="itinerary-list">
             <div class="event activity" data-time="10:00">
-                <div class="event-title-wrapper">
+                <div class="event-title-line">
                     <span>瀨長島 (Umikaji Terrace)</span>
                     <i class="fa-solid fa-angle-down toggle-icon"></i>
                 </div>
                 <div class="event-details">
-                    <p>有「沖繩小希臘」之稱，純白色的露臺式購物區。可以一邊享受美食，一邊觀看飛機起降，景色非常療癒。</p>
+                    <p style="padding-left: 0;">有「沖繩小希臘」之稱，純白色的露臺式購物區。可以一邊享受美食，一邊觀看飛機起降，景色非常療癒。</p>
                 </div>
             </div>
             <div class="event destination" data-time="11:00">探索南邊->知念岬</div>
@@ -368,7 +365,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             const dayCards = document.querySelectorAll('.day-card');
             const navButtons = document.querySelectorAll('.nav-button');
-            const events = document.querySelectorAll('.itinerary-list > .event'); // 選取所有行程事件
+            // 選擇所有包含景點名稱的行，這些才是可點擊展開的
+            const clickableEvents = document.querySelectorAll('.itinerary-list > .event > .event-title-line'); 
 
             // --- 導覽列與卡片切換功能 (維持原樣) ---
             function showDay(dayId) {
@@ -405,25 +403,17 @@
                 setActiveButton(defaultButton);
             }
             
-            // --- 【新增】景點介紹展開/收合功能 ---
-            events.forEach(event => {
-                // 檢查是否有景點細節區塊，沒有則不添加點擊事件
-                const details = event.querySelector('.event-details');
-                
-                if (details) {
-                    event.addEventListener('click', function() {
-                        // 檢查點擊的目標是否在事件細節內部，若是，則不做收合/展開
-                        // 避免點開後，點擊文字又立即收合
-                        // if (event.contains(targetElement) && targetElement !== event) {
-                        //     return;
-                        // }
-                        
-                        // 切換 expanded 狀態
-                        event.classList.toggle('expanded');
-                    });
-                }
+            // --- 【修正後的】景點介紹展開/收合功能 ---
+            clickableEvents.forEach(titleLine => {
+                titleLine.addEventListener('click', function(e) {
+                    // 取得父層 .event 元素
+                    const eventContainer = this.closest('.event');
+                    if (eventContainer) {
+                        // 切換 expanded 狀態，CSS 會處理展開/收合效果
+                        eventContainer.classList.toggle('expanded');
+                    }
+                });
             });
-
         });
     </script>
 </body>
