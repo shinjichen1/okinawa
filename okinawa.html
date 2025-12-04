@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>沖繩五日遊 - 行程冊子 (手機適用)</title>
+    <style>
+        /* style.css START */
+        /* 基本設定與字體 */
+        :root {
+            --primary-color: #FF6B6B; /* 主色調: 鮮明的紅/粉紅 */
+            --secondary-color: #4ECDC4; /* 次要色調: 青綠色 */
+            --bg-light: #F7F7F7; /* 淺灰背景 */
+            --bg-white: #FFFFFF;
+            --text-dark: #333333;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+        }
+{
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', 'Arial', 'Noto Sans TC', sans-serif;
+        }
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            /* 調整底部內容，避免被固定選單遮擋 */
+            padding-bottom: 70px;
+        }
+        /* --- 頂部標題區 --- */
+        .hero-section {
+            background-color: var(--primary-color);
+            color: var(--bg-white);
+            padding: 40px 20px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .hero-section h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+        .hero-section p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        .date-range {
+            margin-top: 10px;
+            font-size: 0.9em;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.2);
+            display: inline-block;
+            border-radius: 5px;
+        }
+        /* --- 每日行程卡片 --- */
+        .day-card {
+            background: var(--bg-white);
+            margin: 20px 15px;
+            border-radius: var(--radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            display: none; /* 預設隱藏，由 JS 控制顯示 */
+        }
+        .day-header {
+            background-color: var(--secondary-color);
+            color: var(--bg-white);
+            padding: 15px 20px;
+            font-size: 1.4em;
+            letter-spacing: 1px;
+        }
+        /* 行程列表 */
+        .itinerary-list {
+            padding: 15px 0 0;
+        }
+        .event {
+            padding: 12px 20px 12px 80px;
+            position: relative;
+            border-left: 2px solid var(--bg-light);
+            margin-left: 30px;
+            min-height: 50px;
+            font-weight: 500;
+        }
+        /* 時間軸點 */
+        .event::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            border: 3px solid var(--bg-white);
+            box-shadow: 0 0 0 2px var(--secondary-color);
+        }
+        /* 時間標籤 */
+        .event::after {
+            content: attr(data-time);
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8em;
+            font-weight: bold;
+            color: var(--primary-color);
+            width: 65px;
+            text-align: right;
+            padding-right: 5px;
+        }
+        /* 旅館資訊 */
+        .hotel-info {
+            background-color: #F0F8FF;
+            padding: 15px 20px;
+            margin-top: 15px;
+            border-radius: 0 0 var(--radius) var(--radius);
+            border-top: 1px dashed #DDD;
+            font-style: italic;
+            font-size: 0.9em;
+            color: #666;
+        }
+        /* --- 特殊色塊標註 (模擬行程表中的色塊) --- */
+        .color-red {
+            background-color: #FFEFEF;
+            border-left: 2px solid #FF0000;
+        }
+        .color-blue {
+            background-color: #EFF8FF;
+            border-left: 2px solid #007BFF;
+        }
+        .color-orange {
+            background-color: #FFF3E0;
+            border-left: 2px solid #FF9800;
+        }
+        .color-green {
+            background-color: #E8F5E9;
+            border-left: 2px solid #4CAF50;
+        }
+        /* 移除最後一個行程的時間軸線 */
+        .itinerary-list > .event:last-of-type,
+        .itinerary-list > .hotel-info + .event:last-of-type {
+            border-left: none;
+        }
+        /* --- 底部導覽列 (Bottom Nav) --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--bg-white);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 1000;
+        }
+        .nav-button {
+            flex-grow: 1;
+            background: none;
+            border: none;
+            padding: 10px 0;
+            color: #999;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s, border-bottom 0.2s;
+            outline: none;
+            /* 讓文字不換行 */
+            white-space: nowrap;
+        }
+        .nav-button:hover {
+            color: var(--text-dark);
+        }
+        .nav-button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        /* --- 頁腳 --- */
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 0.85em;
+            color: #999;
+        }
+        /* style.css END */
+    </style>
+</head>
+<body>
+    <header class="hero-section">
+        <h1>:jp: 沖繩五日之旅 :airplane:</h1>
+        <p>那霸・名護・讀谷・美國村</p>
+        <div class="date-range">11/28 (四) - 12/2 (一)</div>
+    </header>
+    <section class="day-card day-1" id="day-1">
+        <h2 class="day-header">:sunny: DAY 1 | 11/28 (四)</h2>
+        <div class="itinerary-list">
+            <div class="event travel" data-time="08:10-10:45">CI120 桃園→那霸</div>
+            <div class="event action" data-time="12:30">領車 (OTS 那霸空港)</div>
+            <div class="event activity" data-time="14:00">牧志公設市場</div>
+            <div class="event destination color-red" data-time="16:00">那霸→美國村</div>
+            <div class="event activity" data-time="17:00">AEON Rycom + 美國村 (聖誕氣氛)</div>
+            <div class="event action color-red" data-time="22:00">美國村→名護 (Check-in)</div>
+            <div class="hotel-info">:house_with_garden: 住宿: Peace Nago</div>
+        </div>
+    </section>
+    <section class="day-card day-2" id="day-2">
+        <h2 class="day-header">:ocean: DAY 2 | 11/29 (五)</h2>
+        <div class="itinerary-list">
+            <div class="event activity" data-time="10:00">潛水員牛排</div>
+            <div class="event activity" data-time="13:00">嵐山展望台</div>
+            <div class="event activity" data-time="16:00">海中公園</div>
+            <div class="event activity" data-time="18:00">蝦底島</div>
+            <div class="event food" data-time="20:00">燒肉本部</div>
+            <div class="event shopping color-blue" data-time="22:00">24h超市 (MaxValu Nago)</div>
+            <div class="hotel-info">:house_with_garden: 住宿: Peace Nago</div>
+        </div>
+    </section>
+    <section class="day-card day-3" id="day-3">
+        <h2 class="day-header">:notes: DAY 3 | 11/30 (六)</h2>
+        <div class="itinerary-list">
+            <div class="event food" data-time="10:00">Good Day Coffee</div>
+            <div class="event travel" data-time="11:30">海中道路</div>
+            <div class="event activity" data-time="13:00">吃的選三選一</div>
+            <div class="event food" data-time="15:00">港川外人住宅</div>
+            <div class="event activity color-orange" data-time="18:00">演唱會 @ 沖繩會議中心</div>
+            <div class="event destination color-red" data-time="21:00">宜野灣→那霸 (Check-in)</div>
+            <div class="event food" data-time="22:00">Ramen Chanya</div>
+            <div class="hotel-info">:house_with_garden: 住宿: GrandConsort Naha</div>
+        </div>
+    </section>
+    <section class="day-card day-4" id="day-4">
+        <h2 class="day-header">:european_castle: DAY 4 | 12/1 (日)</h2>
+        <div class="itinerary-list">
+            <div class="event activity" data-time="10:00">瀨長島</div>
+            <div class="event destination" data-time="11:00">探索南邊->知念岬</div>
+            <div class="event food" data-time="13:00">ニライカナイ橋展望台 Cafe Yabusachi</div>
+            <div class="event activity" data-time="15:00">奧武島</div>
+            <div class="event destination color-red" data-time="16:30">奧武→那霸</div>
+            <div class="event shopping" data-time="18:00">iias</div>
+            <div class="event shopping color-green" data-time="20:00">國際通 (琉貿百貨/藥妝/伴手禮)</div>
+            <div class="hotel-info">:house_with_garden: 住宿: GrandConsort Naha</div>
+        </div>
+    </section>
+    <section class="day-card day-5" id="day-5">
+        <h2 class="day-header">:shopping_bags: DAY 5 | 12/2 (一)</h2>
+        <div class="itinerary-list">
+            <div class="event activity" data-time="10:00">瀨長島</div>
+            <div class="event destination color-red" data-time="11:30">那霸→Parco</div>
+            <div class="event shopping" data-time="13:00">Parco City</div>
+            <div class="event shopping" data-time="16:00">Sports Depo Ameku</div>
+            <div class="event action color-red" data-time="17:00">還車</div>
+            <div class="event destination" data-time="18:00">旭橋->那霸空港</div>
+            <div class="event travel" data-time="20:20-21:00">CI231 那霸→桃園</div>
+            <div class="hotel-info">:house_with_garden: 住宿: 溫暖的家</div>
+        </div>
+    </section>
+    <nav class="bottom-nav">
+        <button class="nav-button active" data-day="day-1">DAY 1</button>
+        <button class="nav-button" data-day="day-2">DAY 2</button>
+        <button class="nav-button" data-day="day-3">DAY 3</button>
+        <button class="nav-button" data-day="day-4">DAY 4</button>
+        <button class="nav-button" data-day="day-5">DAY 5</button>
+    </nav>
+    <footer class="footer">
+        <p>:wave: 旅行愉快！See you again soon.</p>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dayCards = document.querySelectorAll('.day-card');
+            const navButtons = document.querySelectorAll('.nav-button');
+            function showDay(dayId) {
+                // 1. 隱藏所有行程卡片
+                dayCards.forEach(card => {
+                    card.style.display = 'none';
+                });
+                // 2. 顯示目標卡片
+                const targetCard = document.getElementById(dayId);
+                if (targetCard) {
+                    targetCard.style.display = 'block';
+                    // 點擊後滾動到頁面頂部
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+            function setActiveButton(button) {
+                // 移除所有按鈕的 active 狀態
+                navButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // 為當前點擊的按鈕添加 active 狀態
+                button.classList.add('active');
+            }
+            // 為每個按鈕添加點擊事件監聽
+            navButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const dayId = this.getAttribute('data-day');
+                    showDay(dayId);
+                    setActiveButton(this);
+                });
+            });
+            // 頁面載入時，預設顯示 DAY 1 的行程
+            showDay('day-1');
+        });
+    </script>
+</body>
+</html>
